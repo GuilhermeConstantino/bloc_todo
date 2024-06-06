@@ -3,6 +3,7 @@ import 'package:bloc_project/features/tarefa/presentation/bloc/task_bloc.dart';
 import 'package:bloc_project/features/tarefa/presentation/bloc/task_event.dart';
 import 'package:bloc_project/features/tarefa/presentation/bloc/task_state.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class TaskPage extends StatelessWidget {
   TaskPage({super.key});
@@ -17,13 +18,13 @@ class TaskPage extends StatelessWidget {
       appBar: AppBar(
         title: const Center(child: Text(pageTitle)),
       ),
-      body: StreamBuilder<TaskState>(
-          stream: taskBloc.outputTask,
+      body: BlocBuilder<TaskBloc, TaskState>(
+          bloc: taskBloc,
           builder: (context, state) {
-            if (state.data is TaskLoadingState) {
+            if (state is TaskLoadingState) {
               return const Center(child: CircularProgressIndicator());
-            } else if (state.data is TaskLoadedState) {
-              final List<Task> tasks = state.data?.tasks ?? [];
+            } else if (state is TaskLoadedState || state is TaskInitialState) {
+              final List<Task> tasks = state.tasks;
               return ListView.separated(
                 separatorBuilder: (_, __) => const Divider(),
                 itemCount: tasks.length,
@@ -47,7 +48,7 @@ class TaskPage extends StatelessWidget {
                 },
               );
             } else {
-              return const Center(child: const Text(errorMsg));
+              return const Center(child: Text(errorMsg));
             }
           }),
       floatingActionButton: FloatingActionButton(
@@ -58,11 +59,10 @@ class TaskPage extends StatelessWidget {
   }
 
   _deleteTask(Task task) {
-    taskBloc.inputTask.add(DeleteTasks(task));
+    taskBloc.add(DeleteTasks(task));
   }
 
   _addTask(Task task) {
-    print('object');
-    taskBloc.inputTask.add(PostTask(task));
+    taskBloc.add(PostTask(task));
   }
 }
